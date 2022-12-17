@@ -92,11 +92,3 @@ class PlotHist:
         plt.suptitle('Histogram for Eucl. in m. with yolo')
         plt.savefig(name)
         plt.show()
-
-class PlotWhisker:
-    def plot(eucl_error, name, title_name):
-        fig = plt.figure(figsize =(10, 7))
-        plt.title(title_name)
-        plt.boxplot(eucl_error)
-        plt.savefig(name)
-        # plt.show()

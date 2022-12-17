@@ -1,4 +1,5 @@
-1. data/cf.yaml has info on training images directory. Run training with python train.py --img 320 --batch 8 --epochs 10 --data data/cf.yaml --weights /home/akmaral/server/yolov3/runs/train/yolov3-tiny/weights/best.pt. 
+1. data/cf.yaml has info on training images directory. 
+Run training with python train.py --img 320 --batch 8 --epochs 10 --data data/cf.yaml --weights /home/akmaral/server/yolov3/runs/train/yolov3-tiny/weights/best.pt. 
 Here I am setting initial weights. 
 
 1.1 For the test, run python detect.py --weights runs/train/yolov3-tiny/weights/best.pt --source /home/akmaral/Desktop/yolo_test/**/*.jpg --save-txt - to run a detection on a set of images. Dataset should be images/train, images/val and labels/train, labels/val in the same folder.
