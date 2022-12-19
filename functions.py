@@ -3,8 +3,10 @@ import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.gridspec as gridspec
 import csv
+import math
 
 def quaternion_interpolation(time, q, t):
+    # time - interpolate q with this time
     q_i = []
     for i in range(0, len(time)):
         if time[i] < t[0] or time[i] > t[-1]:
@@ -74,4 +76,57 @@ def cf_dict_time(csv_file):
             cf_list.append(row)
     for i in range(1, len(cf_list)):
         dicts[cf_list[i][0]] = poses[i-1]
+    return dicts
+
+def get_euclidean_err(a,b):
+    return math.sqrt(pow((a[0] - b[0]), 2) + pow((a[1] - b[1]), 2) + pow((a[2] - b[2]), 2))
+
+def find_euc(pr_list, gt_list):
+    matrix = []
+    for i in range(len(gt_list)):
+        tmp_list = []
+        for j in pr_list:
+            tmp_list.append(get_euclidean_err(gt_list[i], j))
+        matrix.append(tmp_list)
+    return matrix
+# returns indices for each row and total sum of cost
+def hungarian(m,mx):
+    indexes = m.compute(mx)
+    total = 0
+    for row, column in indexes:
+        value = mx[row][column]
+        total += value
+    return indexes, total
+
+def find_min_euc(pr_list, gt_list):
+    f = []
+    for i in range(len(pr_list)):
+        min_err = 10.
+        gt_index = -1
+        for j in gt_list:
+            temp_err = get_euclidean_err(pr_list[i], j)
+            if min_err > temp_err:
+                min_err=temp_err
+                gt_index += 1 # 0 for the first element
+        f.append(min_err) # Euclidean error, prediction Cfs list
+#         gt_list.remove(min_value)
+        del gt_list[gt_index]
+        
+        if not gt_list:
+            break
+    return f
+
+def csv_to_dict(csv_file):
+    dicts={}
+    cf_list=[]
+    with open(csv_file) as f:
+        next(f)
+        ncols = len(f.readline().split(','))
+    data = np.loadtxt(csv_file, delimiter=',', skiprows=1, usecols=range(1,ncols))
+    with open(csv_file, 'r') as file:
+        reader = csv.reader(file)
+        for row in reader:
+            cf_list.append(row)
+    for i in range(1, len(cf_list)):
+        dicts[cf_list[i][0]] = data[i-1]
     return dicts
