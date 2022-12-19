@@ -1,5 +1,4 @@
 import numpy as np
-import config_yolo as cfg
 import rowan
 import yaml
 import csv
@@ -10,17 +9,17 @@ import matplotlib.pyplot as plt
 import os
 import pandas as pd
 from time import perf_counter
-from  plot import *
-from functions import *
+from  yolov3.plot import *
+from yolov3.functions import *
+import yolov3.config_yolo as cfg
 
 image_template = 'img_{0:05d}.jpg'
 
-def main():
+def testing_yolov3():
     csv1 = cfg.CSV1
     csv2 = cfg.CSV2 # remove for hovering
     T_cam_w, T_rob_w = np.eye(4), np.eye(4)
     Eucl_error = []
-     
     with open(cfg.CAMERA_PARAMS_YAML) as f:
         camera_params = yaml.safe_load(f)
     fx = np.array(camera_params['camera_matrix'])[0][0]
@@ -53,6 +52,7 @@ def main():
         # robot_in_cam = np.linalg.inv(T_cam_w) @ T_rob_w[:,3]
         T_rel = np.linalg.inv(T_cam_w) @ T_rob_w
         gt_xyz = T_rel[:3,3] # ground truth data, in meters.
+        # gt_yolo.append(gt_xyz)
         fileObj = open(file, "r")
         words = fileObj.read().splitlines() # get bb directly
         bb = words[0].split()
@@ -64,19 +64,14 @@ def main():
         x = cfg.RADIUS*csc(angle/2) # distance
         curW = round((int(bb[0]) + int(bb[2]))/2) # center of bb is the center of CF
         curH = round((int(bb[1]) + int(bb[3]))/2)
-        y = -x*(curW-oy)/fy
-        z = -x*(curH-ox)/fx # CHECK ITS SIGN
-        print(math.sqrt(pow((x - gt_xyz[0]), 2) + pow((y - gt_xyz[1]), 2) + pow((z - gt_xyz[2]), 2)))
+        y = -x *(curW-oy)/fy
+        z = -x *(curH-ox)/fx # CHECK ITS SIGN
         Eucl_error.append(math.sqrt(pow((x - gt_xyz[0]), 2) + pow((y - gt_xyz[1]), 2) + pow((z - gt_xyz[2]), 2)))
 
     end = perf_counter()
     print("Time taken for test is {} min.".format((end-start)/60.))
-    # PlotHist.plot(Eucld_err,'euclidean-error-locanet.jpg')
-    # fig = plt.figure()    
-    # plt.hist(Eucl_error)
-    # plt.suptitle('Histogram for Eucl. with Yolo in m.')
-    # fig.savefig('Yolo-based-position-estimation-real.jpg')
+    return Eucl_error
 
-
+    
 if __name__ == "__main__":
-    main()
+    testing_yolov3()
