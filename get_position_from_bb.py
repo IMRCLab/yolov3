@@ -9,9 +9,12 @@ import matplotlib.pyplot as plt
 import os
 import pandas as pd
 from time import perf_counter
-from  yolov3.plot import *
-from yolov3.functions import *
-import yolov3.config_yolo as cfg
+# from  yolov3.plot import *
+# from yolov3.functions import *
+# import yolov3.config_yolo as cfg
+from  plot import *
+from functions import *
+import config_yolo as cfg
 
 image_template = 'img_{0:05d}.jpg'
 
