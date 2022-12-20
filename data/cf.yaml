@@ -1,0 +1,7 @@
+train: /home/akmaral/tubCloud/Shared/cvmrs/training_dataset/synth/single/1k/yolov3/images/train/
+val: /home/akmaral/tubCloud/Shared/cvmrs/training_dataset/synth/single/1k/yolov3/images/val/
+
+# number of classes
+nc: 1
+# class names
+names: ['crazyflie']
