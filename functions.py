@@ -4,6 +4,9 @@ import matplotlib.pyplot as plt
 import matplotlib.gridspec as gridspec
 import csv
 import math
+import yolov3.config_yolo as cfg_yolo
+import yaml
+from mpmath import csc
 
 def quaternion_interpolation(time, q, t):
     # time - interpolate q with this time
@@ -130,3 +133,26 @@ def csv_to_dict(csv_file):
     for i in range(1, len(cf_list)):
         dicts[cf_list[i][0]] = data[i-1]
     return dicts
+
+def xyz_from_bb(bb):
+    fx,fy,ox,oy = get_camera_parameters()
+    a1 = np.array([-(int(bb[0])-ox)/fx, (((int(bb[1]) + int(bb[3]))/2)-oy)/fy, 1.])
+    a2 = np.array([-(int(bb[2])-ox)/fx, (((int(bb[1]) + int(bb[3]))/2)-oy)/fy, 1.])
+    a1_mag = np.linalg.norm(a1)
+    a2_mag = np.linalg.norm(a2)
+    angle = np.arccos(np.dot(a1,a2)/(a1_mag*a2_mag)) # radians 
+    x = cfg_yolo.RADIUS*csc(angle/2) # distance
+    curW = round((int(bb[0]) + int(bb[2]))/2) # center of bb is the center of CF
+    curH = round((int(bb[1]) + int(bb[3]))/2)
+    y = -x *(curW-oy)/fy
+    z = -x *(curH-ox)/fx # SIGN ?
+    return x,y,z
+
+def get_camera_parameters():
+    with open(cfg_yolo.CAMERA_PARAMS_YAML) as f:
+        camera_params = yaml.safe_load(f)
+    fx = np.array(camera_params['camera_matrix'])[0][0]
+    fy = np.array(camera_params['camera_matrix'])[1][1]
+    ox = np.array(camera_params['camera_matrix'])[0][2]
+    oy = np.array(camera_params['camera_matrix'])[1][2]
+    return fx,fy,ox,oy
