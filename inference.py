@@ -64,6 +64,7 @@ def run(weights= cfg.WEIGHTS,
     source = str(source)
     # Directories
     prediction= {}
+    xyz_yolo = []
     success = 0
     save_dir = increment_path(Path(project) / name, exist_ok=exist_ok)  # increment run
     # inference_file = open(cfg.INFERENCE_FILE, 'w')
@@ -130,13 +131,17 @@ def run(weights= cfg.WEIGHTS,
                     # xywh = (xyxy2xywh(torch.tensor(xyxy).view(1, 4))).view(-1).tolist()  # normalized xywh
                     # line = (det[0][0], det[0][1], det[0][2], det[0][3]) 
                     # inference_file.write('{},{},{},{},{} \n'.format(p.name,det[0][0],det[0][1],det[0][2],det[0][3]))
-                    prediction[p.name] = np.array((det[0][0], det[0][1], det[0][2], det[0][3])).tolist()
                     c = int(cls)  # integer class
                     label = None if hide_labels else (names[c] if hide_conf else f'{names[c]} {conf:.2f}')
                     annotator.box_label(xyxy, label, color=colors(c, True))
+
+                det = det.cpu()
+                for j in range(det.shape[0]):
+                    xyz_yolo.append(np.array((det[j][0], det[j][1], det[j][2], det[j][3])).tolist())
+                prediction[p.name] = xyz_yolo[:]
+                del xyz_yolo[:]                
             else: 
                 prediction[p.name] = np.array((None,None,None,None)).tolist()
-                
             # Stream results
             im0 = annotator.result()
             cv2.imwrite(save_path, im0)

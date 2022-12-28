@@ -6,17 +6,18 @@ import config_yolo as cfg
 
 def main():
     full_data_path = cfg.DATASET_FOLDER
-    ann_data_path = full_data_path + '../annotations/'
+    yolo_path = cfg.DATASET_FOLDER + '../yolov3/'
+    ann_data_path = yolo_path + 'annotations/'
     training_data_path = full_data_path
     extension_allowed = '.jpg'
 
     #create folders
-    images_path = training_data_path + 'images/'
+    images_path = yolo_path + 'images/'
     if os.path.exists(images_path):
         shutil.rmtree(images_path)
     os.mkdir(images_path)
 
-    labels_path = training_data_path + 'labels/'
+    labels_path = yolo_path + 'labels/'
     if os.path.exists(labels_path):
         shutil.rmtree(labels_path)
     os.mkdir(labels_path)
@@ -42,7 +43,6 @@ def main():
             img_name = line[:9]
             annotation_file = img_name + '.txt'
             src_label = ann_data_path + annotation_file
-            print(src_label)
             if os.path.isfile(src_label):
                 src_image = full_data_path + img_name + extension_allowed
                 shutil.copy(src_image, training_images_path)                          
