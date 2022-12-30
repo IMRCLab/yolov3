@@ -65,7 +65,7 @@ def run(weights= cfg.WEIGHTS,
     # Directories
     prediction= {}
     xyz_yolo = []
-    success = 0
+    # success = 0
     save_dir = increment_path(Path(project) / name, exist_ok=exist_ok)  # increment run
     # inference_file = open(cfg.INFERENCE_FILE, 'w')
     # inference_file.write("image_name,x_min,y_min,x_max,y_max \n")
@@ -119,7 +119,7 @@ def run(weights= cfg.WEIGHTS,
             s += '%gx%g ' % im.shape[2:]  # print string
             annotator = Annotator(im0, line_width=line_thickness, example=str(names))
             if len(det):
-                success += 1
+                # success += 1
                 # Rescale boxes from img_size to im0 size
                 det[:, :4] = scale_coords(im.shape[2:], det[:, :4], im0.shape).round()
                 # Print results
@@ -152,7 +152,7 @@ def run(weights= cfg.WEIGHTS,
     t = tuple(x / seen * 1E3 for x in dt)  # speeds per image
     LOGGER.info(f'Speed: %.1fms pre-process, %.1fms inference, %.1fms NMS per image at shape {(1, 3, *imgsz)}' % t)
     LOGGER.info(f"Results saved to {colorstr('bold', detection_dir)}")
-    print("Success rate is {} for {} images.".format(success*100/len(dataset), len(dataset)))
+    # print("Success rate is {} for {} images.".format(success*100/len(dataset), len(dataset)))
 
     if update:
         strip_optimizer(weights)  # update model (to fix SourceChangeWarning)
