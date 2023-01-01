@@ -35,8 +35,8 @@ def main():
     os.mkdir(yolo_folder + 'bb') # to verify visually
 
     label_path = os.path.join(yolo_folder + 'annotations')
-    label_file = 'img_{0:05d}.txt'
-    bb_name = 'img_bb_{0:05d}.png' # to verify visually
+    # label_file = 'img_{0:05d}.txt'
+    # bb_name = 'img_bb_{0:05d}.png' # to verify visually
 
     with open(cfg.CAMERA_PARAMS_YAML) as f:
         camera_params = yaml.safe_load(f)
@@ -46,7 +46,7 @@ def main():
     t_v = np.array(camera_params['tvec'])
     r_v = np.array(camera_params['rvec'])
 
-    x, y, z = 0.040, 0.015, 0.030 # synthetic x=0.040, y = 0.015, z =0.030
+    x, y, z = 0.040, 0.040, 0.040 # synthetic x=0.040, y = 0.015, z =0.030
     M = np.array([[x, y, -z, 1.],
                  [x, y, z, 1.],
                  [-x, y, z, 1.],
@@ -71,7 +71,8 @@ def main():
     for i in range(time.shape[0]): # index for train, val, test (image)
         img = cv2.imread(folder + img_names[i]) 
         success = 0
-        file = open(os.path.join(label_path, label_file.format(i)), "w") # for real-images should be changed
+        # file = open(os.path.join(label_path, label_file.format(i)), "w") # for real-images should be changed
+        file = open(os.path.join(label_path, img_names[i][:-4] + '.txt'), "w") # for real-images should be changed
         for j in range(len(q_interp)): # for each robot
             if q_interp[j][i] is None:
                 continue
@@ -100,15 +101,17 @@ def main():
 
                 if x_c/img_size[0] <= 0.0 or x_c/img_size[0] >= 1.0 or y_c/img_size[1] <= 0.0 or y_c/img_size[1] >= 1.0 or  w/img_size[0] <= 0.0 or  w/img_size[0] >= 1.0 or  h/img_size[1] <= 0.0 or  h/img_size[1] >= 1.0:
                     continue
+
                 success += 1
                 cv2.rectangle(img, (xmin, ymin), (xmax, ymax), (0, 0, 255), 2)
                 file.write(' {} {} {} {} {}'.format(0, x_c/img_size[0],  y_c/img_size[1],  w/img_size[0], h/img_size[1]))
             file.write('\n')   
         file.close()   
         if success == 0:
-            os.remove(os.path.join(label_path, label_file.format(i)))
+            os.remove(os.path.join(label_path, img_names[i][:-4] + '.txt'))
+
         else: 
-            cv2.imwrite(os.path.join(yolo_folder + 'bb/', bb_name.format(i)), img)
+            cv2.imwrite(os.path.join(yolo_folder + 'bb/', img_names[i]), img)
 
 
 if __name__ == "__main__":
