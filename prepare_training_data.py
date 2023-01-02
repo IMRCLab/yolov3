@@ -38,7 +38,7 @@ def main():
     os.mkdir(testing_labels_path)
 
     print("copying training data")
-    with open(full_data_path + '../train.txt') as f:
+    with open(full_data_path + '../locanet/train.txt') as f:
         for line in f:
             img_name = line[:9]
             annotation_file = img_name + '.txt'
@@ -49,7 +49,7 @@ def main():
                 shutil.copy(src_label, training_labels_path) 
 
     print("copying validation data")
-    with open(full_data_path + '../val.txt') as f:
+    with open(full_data_path + '../locanet/val.txt') as f:
         for line in f:
             img_name = line[:9]
             annotation_file = img_name + '.txt'
@@ -60,7 +60,7 @@ def main():
                 shutil.copy(src_label, validation_labels_path)
 
     print("copying testing data")
-    with open(full_data_path + '../test.txt') as f:
+    with open(full_data_path + '../locanet/test.txt') as f:
         for line in f:
             img_name = line[:9]
             annotation_file = img_name + '.txt'

@@ -68,7 +68,7 @@ def main():
         z_rob_interp.append(np.interp(time, rob_in_w[:,8*j+0], rob_in_w[:,8*j+3]))
         q_interp.append(quaternion_interpolation(time, rob_in_w[:,8*j+4:8*j+8], rob_in_w[:,8*j+0]))
 
-    for i in range(time.shape[0]): # index for train, val, test (image)
+    for i in range(time.shape[0]): 
         img = cv2.imread(folder + img_names[i]) 
         success = 0
         # file = open(os.path.join(label_path, label_file.format(i)), "w") # for real-images should be changed
@@ -99,7 +99,7 @@ def main():
                 x_c = round((xmin+xmax)/2)
                 y_c = round((ymin+ymax)/2)
 
-                if x_c/img_size[0] <= 0.0 or x_c/img_size[0] >= 1.0 or y_c/img_size[1] <= 0.0 or y_c/img_size[1] >= 1.0 or  w/img_size[0] <= 0.0 or  w/img_size[0] >= 1.0 or  h/img_size[1] <= 0.0 or  h/img_size[1] >= 1.0:
+                if x_c/img_size[0] < 0.0 or x_c/img_size[0] > 1.0 or y_c/img_size[1] < 0.0 or y_c/img_size[1] > 1.0 or  w/img_size[0] < 0.0 or  w/img_size[0] > 1.0 or  h/img_size[1] < 0.0 or  h/img_size[1] > 1.0:
                     continue
 
                 success += 1
