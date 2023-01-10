@@ -73,7 +73,7 @@ def parse_opt():
     parser = argparse.ArgumentParser()
     parser.add_argument('--yaml', help="dataset.yaml file")
     parser.add_argument('--imgsz', '--img', '--img-size', type=int, default=(320,320), help='image size w,h')
-    parser.add_argument('--img_ext', type=str, default= '*.jpg', help="image extension")
+    parser.add_argument('--img_ext', type=str, default= '*.png', help="image extension") # png for real and jpg for synthetic images
     parser.add_argument('--training_data', type=int, default=90, help='training data percentage')
 
     args = parser.parse_args()
