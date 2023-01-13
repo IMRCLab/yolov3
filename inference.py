@@ -23,6 +23,7 @@ import torch.backends.cudnn as cudnn
 import shutil
 import numpy as np
 import yaml
+from functions import *
 
 FILE = Path(__file__).resolve()
 ROOT = FILE.parents[0]  # root directory
@@ -62,10 +63,6 @@ def run(weights= cfg.WEIGHTS,
         dnn=False,  # use OpenCV DNN for ONNX inference
         ):
     source = str(source)
-    # Directories
-    prediction= {}
-    xyz_yolo = []
-    # success = 0
     save_dir = increment_path(Path(project) / name, exist_ok=exist_ok)  # increment run
     # inference_file = open(cfg.INFERENCE_FILE, 'w')
     # inference_file.write("image_name,x_min,y_min,x_max,y_max \n")
@@ -90,6 +87,7 @@ def run(weights= cfg.WEIGHTS,
     if pt and device.type != 'cpu':
         model(torch.zeros(1, 3, *imgsz).to(device).type_as(next(model.model.parameters())))  # warmup
     dt, seen = [0.0, 0.0, 0.0], 0
+    predictions, images = {},{}
     for path, im, im0s, vid_cap, s in dataset:
         t1 = time_sync()
         im = torch.from_numpy(im).to(device)
@@ -111,6 +109,7 @@ def run(weights= cfg.WEIGHTS,
         dt[2] += time_sync() - t3
         # Process predictions
         for i, det in enumerate(pred):  # per image
+            pred_neighbors, per_image = [], {}
             seen += 1
             p, im0, frame = path, im0s.copy(), getattr(dataset, 'frame', 0)
 
@@ -136,19 +135,28 @@ def run(weights= cfg.WEIGHTS,
                     annotator.box_label(xyxy, label, color=colors(c, True))
 
                 det = det.cpu()
-                for j in range(det.shape[0]):
-                    xyz_yolo.append(np.array((det[j][0], det[j][1], det[j][2], det[j][3])).tolist())
-                prediction[p.name] = xyz_yolo[:]
-                del xyz_yolo[:]                
-            else: 
-                prediction[p.name] = np.array((None,None,None,None)).tolist()
+                for j in range(det.shape[0]): # for each robot
+                    x,y,z = xyz_from_bb(det[j])
+                    print(x,y,z)
+                    pred_neighbors.append(np.array([x,y,z]))
+
+                    # xyz_yolo.append(np.array((det[j][0], det[j][1], det[j][2], det[j][3])).tolist())
+                all_robots = {}
+                print(np.array([x,y,z]))
+                for h in range(len(pred_neighbors)):
+                    per_robot = {}
+                    per_robot['pos'] = pred_neighbors[h].tolist() 
+                    all_robots[h] = per_robot
+                per_image['visible_neighbors'] = all_robots
+                images[p.name] = per_image
             # Stream results
             im0 = annotator.result()
             cv2.imwrite(save_path, im0)
     # Print results
     # inference_file.close()
+    predictions['images'] = images
     with open(cfg.INFERENCE_FILE, 'w') as outfile:
-        yaml.dump(prediction, outfile)
+        yaml.dump(predictions, outfile)
     t = tuple(x / seen * 1E3 for x in dt)  # speeds per image
     LOGGER.info(f'Speed: %.1fms pre-process, %.1fms inference, %.1fms NMS per image at shape {(1, 3, *imgsz)}' % t)
     LOGGER.info(f"Results saved to {colorstr('bold', detection_dir)}")

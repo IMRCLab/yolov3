@@ -4,7 +4,8 @@ import matplotlib.pyplot as plt
 import matplotlib.gridspec as gridspec
 import csv
 import math
-import yolov3.config_yolo as cfg_yolo
+# import yolov3.config_yolo as cfg_yolo # for whisker
+import config_yolo as cfg_yolo
 import yaml
 from mpmath import csc
 
@@ -146,7 +147,7 @@ def xyz_from_bb(bb):
     curH = round((int(bb[1]) + int(bb[3]))/2)
     y = -x *(curW-oy)/fy
     z = -x *(curH-ox)/fx # SIGN ?
-    return x,y,z
+    return float(x),float(y),float(z)
 
 def get_camera_parameters():
     with open(cfg_yolo.CAMERA_PARAMS_YAML) as f:
