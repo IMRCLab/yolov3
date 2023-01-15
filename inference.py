@@ -137,12 +137,10 @@ def run(weights= cfg.WEIGHTS,
                 det = det.cpu()
                 for j in range(det.shape[0]): # for each robot
                     x,y,z = xyz_from_bb(det[j])
-                    print(x,y,z)
                     pred_neighbors.append(np.array([x,y,z]))
 
                     # xyz_yolo.append(np.array((det[j][0], det[j][1], det[j][2], det[j][3])).tolist())
                 all_robots = {}
-                print(np.array([x,y,z]))
                 for h in range(len(pred_neighbors)):
                     per_robot = {}
                     per_robot['pos'] = pred_neighbors[h].tolist() 

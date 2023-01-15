@@ -4,8 +4,8 @@ import matplotlib.pyplot as plt
 import matplotlib.gridspec as gridspec
 import csv
 import math
-# import yolov3.config_yolo as cfg_yolo # for whisker
-import config_yolo as cfg_yolo
+import yolov3.config_yolo as cfg_yolo # for whisker
+# import config_yolo as cfg_yolo
 import yaml
 from mpmath import csc
 
@@ -157,3 +157,21 @@ def get_camera_parameters():
     ox = np.array(camera_params['camera_matrix'])[0][2]
     oy = np.array(camera_params['camera_matrix'])[1][2]
     return fx,fy,ox,oy
+# prediction-yaml, ground-truth-yaml, test.txt
+def get_success_rate(yaml_1, yaml_2, txt_file):
+    success_rate_arr, success_rate = np.zeros(5), 0
+    with open(yaml_1, 'r') as stream:
+        pr = yaml.safe_load(stream)
+    with open(yaml_2, 'r') as stream:
+        gt = yaml.safe_load(stream)   
+    with open(txt_file) as f:
+        txt = f.readlines()
+        annotations = [line.strip() for line in txt if len(line.strip().split()[1:]) != 0]
+    for i in range(len(annotations)): # for each image
+        line = annotations[i].split()
+        test_img_name = line[0]
+        if test_img_name in pr['images']: #  and len(gt['images'][test_img_name]['visible_neighbors']) == len(pr['images'][test_img_name]['visible_neighbors']):
+            success_rate_arr[len(pr['images'][test_img_name]['visible_neighbors'])] += 1
+            if len(gt['images'][test_img_name]['visible_neighbors']) == len(pr['images'][test_img_name]['visible_neighbors']):
+                success_rate += 1
+    return success_rate_arr, success_rate
