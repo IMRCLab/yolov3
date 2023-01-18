@@ -1,5 +1,5 @@
-train: /home/akmaral/tubCloud/Shared/cvmrs/training_dataset/synth/single/1k/yolov3/images/train/
-val: /home/akmaral/tubCloud/Shared/cvmrs/training_dataset/synth/single/1k/yolov3/images/val/
+train: /home/akmaral/tubCloud/Shared/cvmrs/training_dataset/real/single/500/yolov3/images/train/
+val: /home/akmaral/tubCloud/Shared/cvmrs/training_dataset/real/single/500/yolov3/images/val/
 
 # number of classes
 nc: 1

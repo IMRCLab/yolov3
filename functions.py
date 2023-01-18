@@ -4,10 +4,11 @@ import matplotlib.pyplot as plt
 import matplotlib.gridspec as gridspec
 import csv
 import math
-import yolov3.config_yolo as cfg_yolo # for whisker
-# import config_yolo as cfg_yolo
 import yaml
 from mpmath import csc
+
+CAMERA_PARAMS_YAML = '/home/akmaral/tubCloud/Shared/cvmrs/calibration_virtual.yaml' 
+RADIUS =  0.045 # in meters
 
 def quaternion_interpolation(time, q, t):
     # time - interpolate q with this time
@@ -142,7 +143,7 @@ def xyz_from_bb(bb):
     a1_mag = np.linalg.norm(a1)
     a2_mag = np.linalg.norm(a2)
     angle = np.arccos(np.dot(a1,a2)/(a1_mag*a2_mag)) # radians 
-    x = cfg_yolo.RADIUS*csc(angle/2) # distance
+    x = RADIUS*csc(angle/2) # distance
     curW = round((int(bb[0]) + int(bb[2]))/2) # center of bb is the center of CF
     curH = round((int(bb[1]) + int(bb[3]))/2)
     y = -x *(curW-oy)/fy
@@ -150,7 +151,7 @@ def xyz_from_bb(bb):
     return float(x),float(y),float(z)
 
 def get_camera_parameters():
-    with open(cfg_yolo.CAMERA_PARAMS_YAML) as f:
+    with open(CAMERA_PARAMS_YAML) as f:
         camera_params = yaml.safe_load(f)
     fx = np.array(camera_params['camera_matrix'])[0][0]
     fy = np.array(camera_params['camera_matrix'])[1][1]
@@ -166,12 +167,11 @@ def get_success_rate(yaml_1, yaml_2, txt_file):
         gt = yaml.safe_load(stream)   
     with open(txt_file) as f:
         txt = f.readlines()
-        annotations = [line.strip() for line in txt if len(line.strip().split()[1:]) != 0]
+        annotations = [line.strip() for line in txt] # if len(line.strip().split()[1:]) != 0]
     for i in range(len(annotations)): # for each image
         line = annotations[i].split()
         test_img_name = line[0]
-        if test_img_name in pr['images']: #  and len(gt['images'][test_img_name]['visible_neighbors']) == len(pr['images'][test_img_name]['visible_neighbors']):
-            success_rate_arr[len(pr['images'][test_img_name]['visible_neighbors'])] += 1
-            if len(gt['images'][test_img_name]['visible_neighbors']) == len(pr['images'][test_img_name]['visible_neighbors']):
-                success_rate += 1
+        success_rate_arr[len(pr['images'][test_img_name]['visible_neighbors'])] += 1
+        if len(gt['images'][test_img_name]['visible_neighbors']) == len(pr['images'][test_img_name]['visible_neighbors']):
+            success_rate += 1
     return success_rate_arr, success_rate

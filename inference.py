@@ -37,12 +37,11 @@ from utils.general import (LOGGER, check_file, check_img_size, check_imshow, che
                            increment_path, non_max_suppression, print_args, scale_coords, strip_optimizer, xyxy2xywh)
 from utils.plots import Annotator, colors, save_one_box
 from utils.torch_utils import select_device, time_sync
-import config_yolo as cfg
-
+# python3 inference.py PATH-TO-SYNCHRONIZED-DATASET 
 @torch.no_grad()
-def run(weights= cfg.WEIGHTS,  
-        source= cfg.TEST_IMAGES,  
-        imgsz=cfg.IMG_SIZE[0],  # inference size (pixels)
+def run(foldername,
+        weights,  
+        imgsz,  # inference size (pixels)
         conf_thres=0.45,  # confidence threshold           0.25
         iou_thres=0.45,  # NMS IOU threshold
         max_det=1000,  # maximum detections per image
@@ -62,14 +61,13 @@ def run(weights= cfg.WEIGHTS,
         half=False,  # use FP16 half-precision inference
         dnn=False,  # use OpenCV DNN for ONNX inference
         ):
-    source = str(source)
+    source = "{}../yolov3/images/test/**/*.jpg".format(foldername)
     save_dir = increment_path(Path(project) / name, exist_ok=exist_ok)  # increment run
-    # inference_file = open(cfg.INFERENCE_FILE, 'w')
-    # inference_file.write("image_name,x_min,y_min,x_max,y_max \n")
+    
      # save predicted images with bb
-    if os.path.exists(cfg.DETECTION_FOLDER): shutil.rmtree(cfg.DETECTION_FOLDER)
-    os.mkdir(cfg.DETECTION_FOLDER)
-    detection_dir = cfg.DETECTION_FOLDER
+    detection_dir = "{}../yolov3/det/".format(foldername)
+    if os.path.exists(detection_dir): shutil.rmtree(detection_dir)
+    os.mkdir(detection_dir)
 
     # Load model
     device = select_device(device)
@@ -118,7 +116,6 @@ def run(weights= cfg.WEIGHTS,
             s += '%gx%g ' % im.shape[2:]  # print string
             annotator = Annotator(im0, line_width=line_thickness, example=str(names))
             if len(det):
-                # success += 1
                 # Rescale boxes from img_size to im0 size
                 det[:, :4] = scale_coords(im.shape[2:], det[:, :4], im0.shape).round()
                 # Print results
@@ -147,18 +144,20 @@ def run(weights= cfg.WEIGHTS,
                     all_robots[h] = per_robot
                 per_image['visible_neighbors'] = all_robots
                 images[p.name] = per_image
+            else:
+                per_image['visible_neighbors'] = []
+                images[p.name] = per_image
             # Stream results
             im0 = annotator.result()
             cv2.imwrite(save_path, im0)
     # Print results
     # inference_file.close()
     predictions['images'] = images
-    with open(cfg.INFERENCE_FILE, 'w') as outfile:
+    with open("{}../yolov3/inference_yolo.yaml".format(foldername), 'w') as outfile:
         yaml.dump(predictions, outfile)
     t = tuple(x / seen * 1E3 for x in dt)  # speeds per image
     LOGGER.info(f'Speed: %.1fms pre-process, %.1fms inference, %.1fms NMS per image at shape {(1, 3, *imgsz)}' % t)
     LOGGER.info(f"Results saved to {colorstr('bold', detection_dir)}")
-    # print("Success rate is {} for {} images.".format(success*100/len(dataset), len(dataset)))
 
     if update:
         strip_optimizer(weights)  # update model (to fix SourceChangeWarning)
@@ -166,18 +165,18 @@ def run(weights= cfg.WEIGHTS,
 
 def parse_opt():
     parser = argparse.ArgumentParser()
-    # parser.add_argument('--weights', nargs='+', type=str, default=ROOT / 'yolov3.pt', help='model path(s)')
-    # parser.add_argument('--source', type=str, default=ROOT / 'data/images', help='file/dir/URL/glob, 0 for webcam')
-    parser.add_argument('--imgsz', '--img', '--img-size', nargs='+', type=int, default=[320], help='inference size h,w')
+    parser.add_argument('foldername', help="Path to the Synchronized-Dataset folder")
+    parser.add_argument('--weights', nargs='+', type=str, default='/home/akmaral/tubCloud/Shared/cvmrs/trained-models/yolov3/synth-1k-best.pt', help='weights path(s)')
+    parser.add_argument('--imgsz', '--img', '--img-size', nargs='+', type=int, default=[320], help='image size h,w')
     opt = parser.parse_args()
     opt.imgsz *= 2 if len(opt.imgsz) == 1 else 1  # expand
-    # print_args(FILE.stem, opt)
     return opt
 
 
 def main(opt):
     check_requirements(exclude=('tensorboard', 'thop'))
-    run(**vars(opt))
+    # run(**vars(opt))
+    run(opt.foldername, opt.weights, opt.imgsz)
 
 
 if __name__ == "__main__":

@@ -5,11 +5,11 @@ import os
 import yaml
 import argparse
 import fnmatch
-# Converts dataset.yaml into yolov3 training format
+# Converts dataset.yaml into yolov3 training format. Saves all images with/without robot, and labels for images with no robot is empty.
 # python3 get_yolo_labels.py --yaml 'PATH-TO-SYNCHRONIZED-DATASET/dataset.yaml'
-def run(yaml_path, img_size, img_ext, train_data_percentage):
+def run(synchronized_data_folder , img_size, img_ext, train_data_percentage):
 
-    synchronized_data_folder = yaml_path[:-12]
+    yaml_path = synchronized_data_folder + 'dataset.yaml'
     yolo_folder = synchronized_data_folder + '../yolov3/'
     shutil.rmtree(yolo_folder, ignore_errors=True)
     os.mkdir(yolo_folder) # Create a folder for saving images
@@ -71,16 +71,16 @@ def run(yaml_path, img_size, img_ext, train_data_percentage):
         
 def parse_opt():
     parser = argparse.ArgumentParser()
-    parser.add_argument('--yaml', help="dataset.yaml file")
+    parser.add_argument('foldername', help="dataset.yaml file")
     parser.add_argument('--imgsz', '--img', '--img-size', type=int, default=(320,320), help='image size w,h')
-    parser.add_argument('--img_ext', type=str, default= '*.png', help="image extension") # png for real and jpg for synthetic images
-    parser.add_argument('--training_data', type=int, default=90, help='training data percentage')
+    parser.add_argument('--img_ext', type=str, default= '*.jpg', help="image extension") # png for real and jpg for synthetic images
+    parser.add_argument('--training_data', type=int, default=100, help='training data percentage')
 
     args = parser.parse_args()
     return args
 
 def main(args):
-    run(args.yaml, args.imgsz, args.img_ext, args.training_data)
+    run(args.foldername, args.imgsz, args.img_ext, args.training_data)
 
 
 if __name__ == "__main__":
