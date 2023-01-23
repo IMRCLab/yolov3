@@ -4,9 +4,9 @@ import shutil
 import os
 import yaml
 import argparse
-import fnmatch
+import glob
 # Converts dataset.yaml into yolov3 training format. Saves all images with/without robot, and labels for images with no robot is empty.
-# python3 get_yolo_labels.py --yaml 'PATH-TO-SYNCHRONIZED-DATASET/dataset.yaml'
+# python3 get_yolo_labels.py --yaml 'PATH-TO-SYNCHRONIZED-DATASET/'
 def run(synchronized_data_folder , img_size, img_ext, train_data_percentage):
 
     yaml_path = synchronized_data_folder + 'dataset.yaml'
@@ -22,12 +22,14 @@ def run(synchronized_data_folder , img_size, img_ext, train_data_percentage):
     with open(yaml_path, 'r') as stream:
         synchronized_data = yaml.safe_load(stream)
 
-    total_imgs = fnmatch.filter(os.listdir(synchronized_data_folder), img_ext)
+    # total_imgs = fnmatch.filter(os.listdir(synchronized_data_folder), img_ext)
+    total_imgs = sorted( filter( os.path.isfile, glob.glob(synchronized_data_folder + img_ext) ) ) # path+image name
     for i in range(len(total_imgs)):
-        img = cv2.imread(synchronized_data_folder + total_imgs[i])   
-        file = open(os.path.join(annotation_path, total_imgs[i][:-4] + '.txt'), "w")
-        for j in range(len(synchronized_data['images'][total_imgs[i]]['visible_neighbors'])):
-            bb = synchronized_data['images'][total_imgs[i]]['visible_neighbors'][j]['bb'] # xmin,ymin,xmax,ymax
+        # img = cv2.imread(synchronized_data_folder + total_imgs[i])   
+        img = cv2.imread(total_imgs[i])   
+        file = open(os.path.join(annotation_path, total_imgs[i][-13:][:-4] + '.txt'), "w") # iamge name without jpg
+        for j in range(len(synchronized_data['images'][total_imgs[i][-13:]]['visible_neighbors'])):
+            bb = synchronized_data['images'][total_imgs[i][-13:]]['visible_neighbors'][j]['bb'] # xmin,ymin,xmax,ymax
             xmin,ymin,xmax,ymax = bb[0],bb[1],bb[2],bb[3]
             h = ymax - ymin
             w = xmax - xmin
@@ -36,7 +38,7 @@ def run(synchronized_data_folder , img_size, img_ext, train_data_percentage):
             cv2.rectangle(img, (int(xmin), int(ymin)), (int(xmax), int(ymax)), (0, 0, 255), 2)
             file.write(' {} {} {} {} {}'.format(0, x_c/img_size[0],  y_c/img_size[1],  w/img_size[0], h/img_size[1]))
         file.write('\n')   
-        cv2.imwrite(os.path.join(yolo_folder + 'bb/', total_imgs[i]), img)
+        cv2.imwrite(os.path.join(yolo_folder + 'bb/', total_imgs[i][-13:]), img)
 
     file.close()  
 
@@ -64,8 +66,8 @@ def run(synchronized_data_folder , img_size, img_ext, train_data_percentage):
         os.mkdir(target_img_path)
         os.mkdir(target_label_path)
         for t in idx[k]:
-            src_image = synchronized_data_folder + total_imgs[t]
-            src_label = yolo_folder + 'annotations/' + total_imgs[t][:-4] + '.txt'
+            src_image = synchronized_data_folder + total_imgs[t][-13:]
+            src_label = yolo_folder + 'annotations/' + total_imgs[t][-13:][:-4] + '.txt'
             shutil.copy(src_image, target_img_path)                           
             shutil.copy(src_label, target_label_path)
         
@@ -74,7 +76,7 @@ def parse_opt():
     parser.add_argument('foldername', help="dataset.yaml file")
     parser.add_argument('--imgsz', '--img', '--img-size', type=int, default=(320,320), help='image size w,h')
     parser.add_argument('--img_ext', type=str, default= '*.jpg', help="image extension") # png for real and jpg for synthetic images
-    parser.add_argument('--training_data', type=int, default=100, help='training data percentage')
+    parser.add_argument('--training_data', type=int, default=90, help='training data percentage')
 
     args = parser.parse_args()
     return args
