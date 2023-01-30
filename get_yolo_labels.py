@@ -6,7 +6,7 @@ import yaml
 import argparse
 import glob
 # Converts dataset.yaml into yolov3 training format. Saves all images with/without robot, and labels for images with no robot is empty.
-# python3 get_yolo_labels.py --yaml 'PATH-TO-SYNCHRONIZED-DATASET/'
+# python3 get_yolo_labels.py 'PATH-TO-SYNCHRONIZED-DATASET/'
 def run(synchronized_data_folder , img_size, img_ext, train_data_percentage):
 
     yaml_path = synchronized_data_folder + 'dataset.yaml'
@@ -35,9 +35,11 @@ def run(synchronized_data_folder , img_size, img_ext, train_data_percentage):
             w = xmax - xmin
             x_c = round((xmin+xmax)/2)
             y_c = round((ymin+ymax)/2)
+            if x_c/img_size[0] <= 0. or x_c/img_size[0] >= 1.0 or y_c/img_size[1] <= 0. or y_c/img_size[1] >= 1.0 or w/img_size[0] <= 0. or w/img_size[0] >= 1.0 or h/img_size[1] <= 0. or h/img_size[1] >= 1.0:
+                continue
             cv2.rectangle(img, (int(xmin), int(ymin)), (int(xmax), int(ymax)), (0, 0, 255), 2)
             file.write(' {} {} {} {} {}'.format(0, x_c/img_size[0],  y_c/img_size[1],  w/img_size[0], h/img_size[1]))
-        file.write('\n')   
+            file.write('\n')   
         cv2.imwrite(os.path.join(yolo_folder + 'bb/', total_imgs[i][-13:]), img)
 
     file.close()  

@@ -1,4 +1,4 @@
-# YOLOv3 🚀 by Ultralytics, GPL-3.0 license
+ # YOLOv3 🚀 by Ultralytics, GPL-3.0 license
 """
 Run inference on images, videos, directories, streams, etc.
 
@@ -37,7 +37,7 @@ from utils.general import (LOGGER, check_file, check_img_size, check_imshow, che
                            increment_path, non_max_suppression, print_args, scale_coords, strip_optimizer, xyxy2xywh)
 from utils.plots import Annotator, colors, save_one_box
 from utils.torch_utils import select_device, time_sync
-# python3 inference.py PATH-TO-SYNCHRONIZED-DATASET 
+# python3 inference.py PATH-TO-MAIN-FOLDER --weights PATH-TO-WEIGHTS
 @torch.no_grad()
 def run(foldername,
         weights,  
@@ -61,11 +61,11 @@ def run(foldername,
         half=False,  # use FP16 half-precision inference
         dnn=False,  # use OpenCV DNN for ONNX inference
         ):
-    source = "{}../yolov3/images/test/**/*.jpg".format(foldername)
+    source = "{}yolov3/images/test/**/*.jpg".format(foldername)
     save_dir = increment_path(Path(project) / name, exist_ok=exist_ok)  # increment run
     
      # save predicted images with bb
-    detection_dir = "{}../yolov3/det/".format(foldername)
+    detection_dir = "{}yolov3/det/".format(foldername)
     if os.path.exists(detection_dir): shutil.rmtree(detection_dir)
     os.mkdir(detection_dir)
 
@@ -153,7 +153,7 @@ def run(foldername,
     # Print results
     # inference_file.close()
     predictions['images'] = images
-    with open("{}../yolov3/inference_yolo.yaml".format(foldername), 'w') as outfile:
+    with open("{}yolov3/inference_yolo.yaml".format(foldername), 'w') as outfile:
         yaml.dump(predictions, outfile)
     t = tuple(x / seen * 1E3 for x in dt)  # speeds per image
     LOGGER.info(f'Speed: %.1fms pre-process, %.1fms inference, %.1fms NMS per image at shape {(1, 3, *imgsz)}' % t)
@@ -165,7 +165,7 @@ def run(foldername,
 
 def parse_opt():
     parser = argparse.ArgumentParser()
-    parser.add_argument('foldername', help="Path to the Synchronized-Dataset folder")
+    parser.add_argument('foldername', help="Path to the Main folder")
     parser.add_argument('--weights', nargs='+', type=str, default='/home/akmaral/tubCloud/Shared/cvmrs/trained-models/yolov3/synth-1k-best.pt', help='weights path(s)')
     parser.add_argument('--imgsz', '--img', '--img-size', nargs='+', type=int, default=[320], help='image size h,w')
     opt = parser.parse_args()
