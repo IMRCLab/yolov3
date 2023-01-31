@@ -27,9 +27,9 @@ def run(synchronized_data_folder , img_size, img_ext, train_data_percentage):
     for i in range(len(total_imgs)):
         # img = cv2.imread(synchronized_data_folder + total_imgs[i])   
         img = cv2.imread(total_imgs[i])   
-        file = open(os.path.join(annotation_path, total_imgs[i][-13:][:-4] + '.txt'), "w") # iamge name without jpg
-        for j in range(len(synchronized_data['images'][total_imgs[i][-13:]]['visible_neighbors'])):
-            bb = synchronized_data['images'][total_imgs[i][-13:]]['visible_neighbors'][j]['bb'] # xmin,ymin,xmax,ymax
+        file = open(os.path.join(annotation_path, total_imgs[i].split("/")[-1][:-4] + '.txt'), "w") # iamge name without jpg
+        for j in range(len(synchronized_data['images'][total_imgs[i].split("/")[-1]]['visible_neighbors'])):
+            bb = synchronized_data['images'][total_imgs[i].split("/")[-1]]['visible_neighbors'][j]['bb'] # xmin,ymin,xmax,ymax
             xmin,ymin,xmax,ymax = bb[0],bb[1],bb[2],bb[3]
             h = ymax - ymin
             w = xmax - xmin
@@ -40,7 +40,7 @@ def run(synchronized_data_folder , img_size, img_ext, train_data_percentage):
             cv2.rectangle(img, (int(xmin), int(ymin)), (int(xmax), int(ymax)), (0, 0, 255), 2)
             file.write(' {} {} {} {} {}'.format(0, x_c/img_size[0],  y_c/img_size[1],  w/img_size[0], h/img_size[1]))
             file.write('\n')   
-        cv2.imwrite(os.path.join(yolo_folder + 'bb/', total_imgs[i][-13:]), img)
+        cv2.imwrite(os.path.join(yolo_folder + 'bb/', total_imgs[i].split("/")[-1]), img)
 
     file.close()  
 
@@ -68,8 +68,8 @@ def run(synchronized_data_folder , img_size, img_ext, train_data_percentage):
         os.mkdir(target_img_path)
         os.mkdir(target_label_path)
         for t in idx[k]:
-            src_image = synchronized_data_folder + total_imgs[t][-13:]
-            src_label = yolo_folder + 'annotations/' + total_imgs[t][-13:][:-4] + '.txt'
+            src_image = synchronized_data_folder + total_imgs[t].split("/")[-1]
+            src_label = yolo_folder + 'annotations/' + total_imgs[t].split("/")[-1][:-4] + '.txt'
             shutil.copy(src_image, target_img_path)                           
             shutil.copy(src_label, target_label_path)
         
