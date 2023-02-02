@@ -160,7 +160,7 @@ def get_camera_parameters():
     return fx,fy,ox,oy
 # prediction-yaml, ground-truth-yaml, test.txt
 def get_success_rate(yaml_1, yaml_2, txt_file):
-    success_rate_arr, success_rate = np.zeros(5), 0
+    success_rate_pos, success_rate_neg, success_rate = np.zeros(6), np.zeros(6), 0
     with open(yaml_1, 'r') as stream:
         pr = yaml.safe_load(stream)
     with open(yaml_2, 'r') as stream:
@@ -168,10 +168,14 @@ def get_success_rate(yaml_1, yaml_2, txt_file):
     with open(txt_file) as f:
         txt = f.readlines()
         annotations = [line.strip() for line in txt] # if len(line.strip().split()[1:]) != 0]
+    success_rate_rel = np.zeros(len(annotations))
     for i in range(len(annotations)): # for each image
         line = annotations[i].split()
         test_img_name = line[0]
-        success_rate_arr[len(pr['images'][test_img_name]['visible_neighbors'])] += 1
+        success_rate_rel[i] = len(pr['images'][test_img_name]['visible_neighbors']) - len(gt['images'][test_img_name]['visible_neighbors'])
         if len(gt['images'][test_img_name]['visible_neighbors']) == len(pr['images'][test_img_name]['visible_neighbors']):
             success_rate += 1
-    return success_rate_arr, success_rate
+            success_rate_pos[len(gt['images'][test_img_name]['visible_neighbors'])] += 1
+        else:
+            success_rate_neg[len(gt['images'][test_img_name]['visible_neighbors'])] -= 1
+    return success_rate_rel, success_rate_pos, success_rate_neg, success_rate
