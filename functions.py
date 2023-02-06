@@ -171,7 +171,7 @@ def get_success_rate(yaml_1, yaml_2, txt_file):
     success_rate_rel = np.zeros(len(annotations))
     for i in range(len(annotations)): # for each image
         line = annotations[i].split()
-        test_img_name = line[0]
+        test_img_name = line[0].split("/")[-1]
         success_rate_rel[i] = len(pr['images'][test_img_name]['visible_neighbors']) - len(gt['images'][test_img_name]['visible_neighbors'])
         if len(gt['images'][test_img_name]['visible_neighbors']) == len(pr['images'][test_img_name]['visible_neighbors']):
             success_rate += 1
