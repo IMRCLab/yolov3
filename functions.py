@@ -6,6 +6,7 @@ import csv
 import math
 import yaml
 from mpmath import csc
+import cv2
 
 CAMERA_PARAMS_YAML = '/home/akmaral/tubCloud/Shared/cvmrs/calibration_virtual.yaml' 
 RADIUS =  0.045 # in meters
@@ -115,8 +116,7 @@ def find_min_euc(pr_list, gt_list):
                 gt_index += 1 # 0 for the first element
         f.append(min_err) # Euclidean error, prediction Cfs list
 #         gt_list.remove(min_value)
-        del gt_list[gt_index]
-        
+        del gt_list[gt_index]       
         if not gt_list:
             break
     return f
@@ -137,27 +137,36 @@ def csv_to_dict(csv_file):
     return dicts
 
 def xyz_from_bb(bb):
-    fx,fy,ox,oy = get_camera_parameters()
-    a1 = np.array([-(int(bb[0])-ox)/fx, (((int(bb[1]) + int(bb[3]))/2)-oy)/fy, 1.])
-    a2 = np.array([-(int(bb[2])-ox)/fx, (((int(bb[1]) + int(bb[3]))/2)-oy)/fy, 1.])
-    a1_mag = np.linalg.norm(a1)
-    a2_mag = np.linalg.norm(a2)
-    angle = np.arccos(np.dot(a1,a2)/(a1_mag*a2_mag)) # radians 
-    x = RADIUS*csc(angle/2) # distance
-    curW = round((int(bb[0]) + int(bb[2]))/2) # center of bb is the center of CF
-    curH = round((int(bb[1]) + int(bb[3]))/2)
-    y = -x *(curW-oy)/fy
-    z = -x *(curH-ox)/fx # SIGN ?
-    return float(x),float(y),float(z)
+    mtrx, dist_vec = get_camera_parameters()
+    fx = np.array(mtrx)[0][0]
+    fy = np.array(mtrx)[1][1]
+    ox = np.array(mtrx)[0][2]
+    oy = np.array(mtrx)[1][2]
+    # get pixels for bb side center
+    P1 = np.array([bb[0],(bb[1] + bb[3])/2])
+    P2 = np.array([bb[2],(bb[1] + bb[3])/2])
+    # rectify pixels
+    P1_rec = cv2.undistort(P1, mtrx, dist_vec, None, mtrx)
+    P2_rec = cv2.undistort(P2, mtrx, dist_vec, None, mtrx)
+    # get rays for pixels
+    a1 = np.array([(P1_rec[0]-ox)/fx, (P1_rec[1]-oy)/fy, 1.0])
+    a2 = np.array([(P2_rec[0]-ox)/fx, (P2_rec[1]-oy)/fy, 1.0])
+    # normalize rays
+    a1 = np.linalg.norm(a1)
+    a2 = np.linalg.norm(a2)
+    # get the distance
+    distance = (np.sqrt(2)*RADIUS)/(np.sqrt(1-np.dot(a1,a2)))
+    # get central ray
+    ac = (a1+a2)/2
+    # get the position
+    xyz = distance*np.linalg.norm(ac)
+    return xyz
 
 def get_camera_parameters():
     with open(CAMERA_PARAMS_YAML) as f:
-        camera_params = yaml.safe_load(f)
-    fx = np.array(camera_params['camera_matrix'])[0][0]
-    fy = np.array(camera_params['camera_matrix'])[1][1]
-    ox = np.array(camera_params['camera_matrix'])[0][2]
-    oy = np.array(camera_params['camera_matrix'])[1][2]
-    return fx,fy,ox,oy
+        camera_params = yaml.safe_load(f)   
+    return camera_params['camera_matrix'], camera_params['dist_coeff']
+
 # prediction-yaml, ground-truth-yaml, test.txt
 def get_success_rate(yaml_1, yaml_2, txt_file):
     success_rate_pos, success_rate_neg, success_rate = np.zeros(6), np.zeros(6), 0
@@ -179,3 +188,21 @@ def get_success_rate(yaml_1, yaml_2, txt_file):
         else:
             success_rate_neg[len(gt['images'][test_img_name]['visible_neighbors'])] -= 1
     return success_rate_rel, success_rate_pos, success_rate_neg, success_rate
+
+# def xyz_from_bb(bb):
+#     fx,fy,ox,oy = get_camera_parameters()
+#     a1 = np.array([(ox-int(bb[0]))/fx, (oy-((int(bb[1]) + int(bb[3]))/2))/fy, 1.]) # xmin, ymax-ymin/2
+#     a2 = np.array([(ox-int(bb[2]))/fx, (oy-((int(bb[1]) + int(bb[3]))/2))/fy, 1.]) # xmax, ymax-ymin/2
+#     a1_mag = np.linalg.norm(a1)
+#     a2_mag = np.linalg.norm(a2)
+#     angle = np.arccos(np.dot(a1,a2)/(a1_mag*a2_mag)) # radians 
+#     x = RADIUS*csc(angle/2) # distance
+#     curW = round((int(bb[0]) + int(bb[2]))/2) # center of bb is the center of CF
+#     curH = round((int(bb[1]) + int(bb[3]))/2)
+#     y = -x *(curW-oy)/fy
+#     z = -x *(curH-ox)/fx 
+#     # ac = (a1+a2)/2
+#     # ac_mag = np.linalg.norm(ac)
+#     # C = x*(ac/ac_mag) 
+    
+#     return float(x),float(y),float(z)

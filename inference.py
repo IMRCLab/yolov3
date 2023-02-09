@@ -87,6 +87,7 @@ def run(foldername,
     dt, seen = [0.0, 0.0, 0.0], 0
     predictions, images = {},{}
     for path, im, im0s, vid_cap, s in dataset:
+        print(path)
         t1 = time_sync()
         im = torch.from_numpy(im).to(device)
         im = im.half() if half else im.float()  # uint8 to fp16/32
@@ -129,12 +130,13 @@ def run(foldername,
                     # inference_file.write('{},{},{},{},{} \n'.format(p.name,det[0][0],det[0][1],det[0][2],det[0][3]))
                     c = int(cls)  # integer class
                     label = None if hide_labels else (names[c] if hide_conf else f'{names[c]} {conf:.2f}')
+                    # print(xyxy)
                     annotator.box_label(xyxy, label, color=colors(c, True))
 
                 det = det.cpu()
                 for j in range(det.shape[0]): # for each robot
-                    x,y,z = xyz_from_bb(det[j])
-                    pred_neighbors.append(np.array([x,y,z]))
+                    xyz = xyz_from_bb(det[j]) # det -> xmin,ymin,xmax,ymax
+                    pred_neighbors.append(np.array([xyz[0],xyz[1],xyz[2]]))
 
                     # xyz_yolo.append(np.array((det[j][0], det[j][1], det[j][2], det[j][3])).tolist())
                 all_robots = {}
