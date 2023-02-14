@@ -137,6 +137,7 @@ def csv_to_dict(csv_file):
     return dicts
 
 def xyz_from_bb(bb):
+    # bb - xmin,ymin,xmax,ymax
     mtrx, dist_vec = get_camera_parameters()
     fx = np.array(mtrx)[0][0]
     fy = np.array(mtrx)[1][1]
