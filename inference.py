@@ -145,10 +145,10 @@ def run(foldername,
                     per_robot['pos'] = pred_neighbors[h].tolist() 
                     all_robots[h] = per_robot
                 per_image['visible_neighbors'] = all_robots
-                images[p.name] = per_image
+                images[str(len(pred_neighbors)) + '/' + p.name] = per_image
             else:
                 per_image['visible_neighbors'] = []
-                images[p.name] = per_image
+                images[str(0) + '/' + p.name] = per_image
             # Stream results
             im0 = annotator.result()
             cv2.imwrite(save_path, im0)
