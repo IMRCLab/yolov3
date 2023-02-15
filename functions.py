@@ -149,24 +149,25 @@ def xyz_from_bb(bb):
     # rectify pixels
     P1_rec = cv2.undistort(P1, mtrx, dist_vec, None, mtrx)
     P2_rec = cv2.undistort(P2, mtrx, dist_vec, None, mtrx)
+   
     # get rays for pixels
-    a1 = np.array([(P1_rec[0]-ox)/fx, (P1_rec[1]-oy)/fy, 1.0])
-    a2 = np.array([(P2_rec[0]-ox)/fx, (P2_rec[1]-oy)/fy, 1.0])
+    a1 = np.array([(P1_rec[0][0]-ox)/fx, (P1_rec[1][0]-oy)/fy, 1.0])
+    a2 = np.array([(P2_rec[0][0]-ox)/fx, (P2_rec[1][0]-oy)/fy, 1.0])
     # normalize rays
-    a1 = np.linalg.norm(a1)
-    a2 = np.linalg.norm(a2)
-    # get the distance
-    distance = (np.sqrt(2)*RADIUS)/(np.sqrt(1-np.dot(a1,a2)))
+    a1_norm = np.linalg.norm(a1)
+    a2_norm = np.linalg.norm(a2)
+    # get the distance    
+    distance = (np.sqrt(2)*RADIUS)/(np.sqrt(1-np.dot(a1,a2)/(a1_norm*a2_norm)))
     # get central ray
     ac = (a1+a2)/2
     # get the position
-    xyz = distance*np.linalg.norm(ac)
+    xyz = distance*ac/np.linalg.norm(ac)
     return xyz
 
 def get_camera_parameters():
     with open(CAMERA_PARAMS_YAML) as f:
         camera_params = yaml.safe_load(f)   
-    return camera_params['camera_matrix'], camera_params['dist_coeff']
+    return np.array(camera_params['camera_matrix']), np.array(camera_params['dist_coeff'])
 
 # prediction-yaml, ground-truth-yaml, test.txt
 def get_success_rate(yaml_1, yaml_2, txt_file):

@@ -40,7 +40,8 @@ def run(main_data_folder , img_size, img_ext, train_data_percentage, data_split)
 
     for key in data_split: # for each folder 0,1,2
         total_imgs = sorted(filter(os.path.isfile, glob.glob(synchronized_data_folder + key + '/' + img_ext)))
-        if (len(total_imgs)) or data_split[key] <= len(total_imgs):
+        if data_split[key] <= len(total_imgs):
+            print(len(total_imgs))
             for i in range(len(total_imgs)):
                 # img = cv2.imread(total_imgs[i]) 
                 file = open(os.path.join(annotation_path, total_imgs[i].split("/")[-1][:-4] + '.txt'), "w") # iamge name without jpg
@@ -82,8 +83,8 @@ def parse_opt():
     parser.add_argument('foldername', help="dataset.yaml file")
     parser.add_argument('--imgsz', '--img', '--img-size', type=int, default=(320,320), help='image size w,h')
     parser.add_argument('--img_ext', type=str, default= '*.jpg', help="image extension") # png for real and jpg for synthetic images
-    parser.add_argument('--training_data_percentage', type=int, default=90, help='training data percentage')
-    parser.add_argument('--data_split', default={'0': 10, '1':50, '2': 100}, help='percentage for data split between different number of robots')
+    parser.add_argument('--training_data_percentage', type=int, default=95, help='training data percentage')
+    parser.add_argument('--data_split', default={'0': 180, '1':950, '2': 1300}, help='percentage for data split between different number of robots')
     args = parser.parse_args()
     return args
 
