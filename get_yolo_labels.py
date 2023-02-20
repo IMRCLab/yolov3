@@ -10,14 +10,14 @@ from os.path import normpath, basename
 # python3 get_yolo_labels.py 'PATH-TO-MAIN-FOLDER
 def run(main_data_folder , img_size, img_ext, train_data_percentage, data_split):
     synchronized_data_folder = main_data_folder + 'Synchronized-Dataset/'
-    yaml_path = synchronized_data_folder + 'dataset.yaml'
+    # yaml_path = synchronized_data_folder + 'dataset.yaml'
     yolo_folder = main_data_folder + 'yolov3/'
     shutil.rmtree(yolo_folder, ignore_errors=True)
     os.mkdir(yolo_folder) # Create a folder for saving images
     shutil.rmtree(yolo_folder + 'annotations', ignore_errors=True)
     os.mkdir(yolo_folder + 'annotations')
-    # shutil.rmtree(yolo_folder + 'bb', ignore_errors=True) 
-    # os.mkdir(yolo_folder + 'bb') # to verify visually
+    shutil.rmtree(yolo_folder + 'bb', ignore_errors=True) 
+    os.mkdir(yolo_folder + 'bb') # to verify visually
    # Prepare training, validation, testing data
     images_path = yolo_folder + 'images/'
     if os.path.exists(images_path):
@@ -35,19 +35,22 @@ def run(main_data_folder , img_size, img_ext, train_data_percentage, data_split)
         os.mkdir(images_path + yolo_folders[k] + '/')
         os.mkdir(labels_path + yolo_folders[k] + '/')
     annotation_path = os.path.join(yolo_folder + 'annotations')
-    with open(yaml_path, 'r') as stream:
-        synchronized_data = yaml.safe_load(stream)
+    # with open(yaml_path, 'r') as stream:
+    #     synchronized_data = yaml.safe_load(stream)
 
     for key in data_split: # for each folder 0,1,2
+        yaml_path = synchronized_data_folder + key + '/' + 'dataset.yaml'
+        with open(yaml_path, 'r') as stream:
+            synchronized_data = yaml.safe_load(stream)
         total_imgs = sorted(filter(os.path.isfile, glob.glob(synchronized_data_folder + key + '/' + img_ext)))
         if data_split[key] <= len(total_imgs):
             print(len(total_imgs))
             for i in range(len(total_imgs)):
-                # img = cv2.imread(total_imgs[i]) 
+                img = cv2.imread(total_imgs[i]) 
                 file = open(os.path.join(annotation_path, total_imgs[i].split("/")[-1][:-4] + '.txt'), "w") # iamge name without jpg
             
-                for j in range(len(synchronized_data['images'][key + '/' + total_imgs[i].split("/")[-1]]['visible_neighbors'])):
-                    bb = synchronized_data['images'][key + '/' + total_imgs[i].split("/")[-1]]['visible_neighbors'][j]['bb'] # xmin,ymin,xmax,ymax
+                for j in range(len(synchronized_data['images'][total_imgs[i].split("/")[-1]]['visible_neighbors'])):
+                    bb = synchronized_data['images'][total_imgs[i].split("/")[-1]]['visible_neighbors'][j]['bb'] # xmin,ymin,xmax,ymax
                     xmin,ymin,xmax,ymax = bb[0],bb[1],bb[2],bb[3]
                     h = ymax - ymin
                     w = xmax - xmin
@@ -56,10 +59,10 @@ def run(main_data_folder , img_size, img_ext, train_data_percentage, data_split)
                     
                     # if x_c/img_size[0] <= 0. or x_c/img_size[0] >= 1.0 or y_c/img_size[1] <= 0. or y_c/img_size[1] >= 1.0 or w/img_size[0] <= 0. or w/img_size[0] >= 1.0 or h/img_size[1] <= 0. or h/img_size[1] >= 1.0:
                     #     continue
-                    # cv2.rectangle(img, (int(xmin), int(ymin)), (int(xmax), int(ymax)), (0, 0, 255), 2)
+                    cv2.rectangle(img, (int(xmin), int(ymin)), (int(xmax), int(ymax)), (0, 0, 255), 2)
                     file.write(' {} {} {} {} {}'.format(0, x_c/img_size[0],  y_c/img_size[1],  w/img_size[0], h/img_size[1]))
                     file.write('\n')   
-                # cv2.imwrite(os.path.join(yolo_folder + 'bb/', total_imgs[i].split("/")[-1]), img)
+                cv2.imwrite(os.path.join(yolo_folder + 'bb/', total_imgs[i].split("/")[-1]), img)
                 file.close()  
             indices = list(range(0, data_split[key])) 
             numImgTrain = round(train_data_percentage/100*len(indices))
@@ -84,7 +87,7 @@ def parse_opt():
     parser.add_argument('--imgsz', '--img', '--img-size', type=int, default=(320,320), help='image size w,h')
     parser.add_argument('--img_ext', type=str, default= '*.jpg', help="image extension") # png for real and jpg for synthetic images
     parser.add_argument('--training_data_percentage', type=int, default=95, help='training data percentage')
-    parser.add_argument('--data_split', default={'0': 180, '1':950, '2': 1300}, help='percentage for data split between different number of robots')
+    parser.add_argument('--data_split', default={'0': 10, '1':10, '2': 10}, help='percentage for data split between different number of robots')
     args = parser.parse_args()
     return args
 
