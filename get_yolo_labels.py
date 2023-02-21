@@ -17,22 +17,23 @@ def main():
     img_size = args.imgsz
     train_data_percentage = args.training_data_percentage
     
-    yolo_folder = '/home/akmaral/test/yolov3/'
+    yolo_folder = str(Path(data[0][0]).parent.parent.parent / "yolov3")
     shutil.rmtree(yolo_folder, ignore_errors=True)
     os.mkdir(yolo_folder) # Create a folder for saving images
-    ann_folder = yolo_folder + 'annotations'
+
+    ann_folder = yolo_folder + '/annotations'
     shutil.rmtree(ann_folder, ignore_errors=True)
-    os.mkdir(yolo_folder + 'annotations')
-    bb_folder = yolo_folder + 'bb'
+    os.mkdir(yolo_folder + '/annotations')
+    bb_folder = yolo_folder + '/bb'
     shutil.rmtree(bb_folder, ignore_errors=True) 
-    os.mkdir(yolo_folder + 'bb') # to verify visually
+    os.mkdir(yolo_folder + '/bb') # to verify visually
    # Prepare training, validation, testing data
-    images_path = yolo_folder + 'images/'
+    images_path = yolo_folder + '/images/'
     if os.path.exists(images_path):
         shutil.rmtree(images_path)
     os.mkdir(images_path)
 
-    labels_path = yolo_folder + 'labels/'
+    labels_path = yolo_folder + '/labels/'
     if os.path.exists(labels_path):
         shutil.rmtree(labels_path)
     os.mkdir(labels_path)
@@ -62,8 +63,8 @@ def main():
                     w = xmax - xmin
                     x_c = round((xmin+xmax)/2)
                     y_c = round((ymin+ymax)/2)     
-                    # if x_c/img_size[0] <= 0. or x_c/img_size[0] >= 1.0 or y_c/img_size[1] <= 0. or y_c/img_size[1] >= 1.0 or w/img_size[0] <= 0. or w/img_size[0] >= 1.0 or h/img_size[1] <= 0. or h/img_size[1] >= 1.0:
-                    #     continue
+                    if x_c/img_size[0] <= 0. or x_c/img_size[0] >= 1.0 or y_c/img_size[1] <= 0. or y_c/img_size[1] >= 1.0 or w/img_size[0] <= 0. or w/img_size[0] >= 1.0 or h/img_size[1] <= 0. or h/img_size[1] >= 1.0:
+                        continue
                     cv2.rectangle(img, (int(xmin), int(ymin)), (int(xmax), int(ymax)), (0, 0, 255), 2)
                     file.write(' {} {} {} {} {}'.format(0, x_c/img_size[0],  y_c/img_size[1],  w/img_size[0], h/img_size[1]))
                     file.write('\n')                     
