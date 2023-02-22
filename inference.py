@@ -66,6 +66,7 @@ def run(foldername,
     
      # save predicted images with bb
     detection_dir = "{}yolov3/det/".format(foldername)
+
     if os.path.exists(detection_dir): shutil.rmtree(detection_dir)
     os.mkdir(detection_dir)
 
@@ -145,10 +146,10 @@ def run(foldername,
                     per_robot['pos'] = pred_neighbors[h].tolist() 
                     all_robots[h] = per_robot
                 per_image['visible_neighbors'] = all_robots
-                images[str(len(pred_neighbors)) + '/' + p.name] = per_image
+                images[p.name] = per_image
             else:
                 per_image['visible_neighbors'] = []
-                images[str(0) + '/' + p.name] = per_image
+                images[p.name] = per_image
             # Stream results
             im0 = annotator.result()
             cv2.imwrite(save_path, im0)
