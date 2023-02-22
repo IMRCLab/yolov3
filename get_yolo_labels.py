@@ -51,7 +51,7 @@ def main():
         os.mkdir(labels_path + data_folders[k] + '/')
     
     for i in range(len(data)): # for each data in list
-        main_folder =  Path(data[i][0]).parent
+        main_folder =  Path(data[i][0]).parent.parent # without /0
         yaml_file = data[i][0]
         numImgTrain = round(train_data_percentage/100*int(data[i][1]))
         data_cnt = 0
@@ -59,7 +59,8 @@ def main():
             synchronized_data = yaml.safe_load(stream)
         training_val_data = dict(itertools.islice(synchronized_data['images'].items(), int(data[i][1])))
         for image, value in training_val_data.items():
-            file = open(os.path.join(ann_folder, image[:-4] + '.txt'), "w") 
+            # file = open(os.path.join(ann_folder, image[:-4] + '.txt'), "w") 
+            file = open(os.path.join(ann_folder, image.split("/")[-1][:-4] + '.txt'), "w")
             neighbors = value['visible_neighbors']
             if len(neighbors) > 0:
                 # img = cv2.imread(str(main_folder / image))
@@ -78,7 +79,7 @@ def main():
             file.close()
             data_cnt += 1
             src_img_path = str(main_folder / image)
-            src_file_path = str(ann_folder + '/' + image[:-4] + '.txt')
+            src_file_path = str(ann_folder + '/' + image.split("/")[-1][:-4] + '.txt')
 
             if data_cnt <= numImgTrain and mode =='train':
                 target_img_path = images_path + data_folders[1] + '/'
