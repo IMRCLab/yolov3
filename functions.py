@@ -9,7 +9,7 @@ from mpmath import csc
 import cv2
 
 CAMERA_PARAMS_YAML = '/home/akmaral/tubCloud/Shared/cvmrs/calibration_virtual.yaml' 
-RADIUS =  0.045 # in meters
+RADIUS =  0.0467 # in meters
 
 def quaternion_interpolation(time, q, t):
     # time - interpolate q with this time
@@ -168,30 +168,6 @@ def get_camera_parameters():
     with open(CAMERA_PARAMS_YAML) as f:
         camera_params = yaml.safe_load(f)   
     return np.array(camera_params['camera_matrix']), np.array(camera_params['dist_coeff'])
-
-# prediction-yaml, ground-truth-yaml, test.txt
-def get_success_rate(yaml_1, yaml_2, txt_file):
-    success_rate_pos, success_rate_neg, success_rate = np.zeros(6), np.zeros(6), 0
-    with open(yaml_1, 'r') as stream:
-        pr = yaml.safe_load(stream)
-    with open(yaml_2, 'r') as stream:
-        gt = yaml.safe_load(stream)   
-    with open(txt_file) as f:
-        txt = f.readlines()
-        annotations = [line.strip() for line in txt] # if len(line.strip().split()[1:]) != 0]
-    for i in range(len(annotations)): # for each image
-        line = annotations[i].split()
-        subfolder, img_name = line[0].split('/')[-2:]
-        test_img_name = subfolder+'/'+img_name
-        
-        # success_rate_rel[i] = len(pr['images'][test_img_name]['visible_neighbors']) - len(gt['images'][test_img_name]['visible_neighbors'])
-        if test_img_name in pr['images']:
-        # if len(gt['images'][test_img_name]['visible_neighbors']) == len(pr['images'][test_img_name]['visible_neighbors']):
-            success_rate += 1
-            success_rate_pos[len(gt['images'][test_img_name]['visible_neighbors'])] += 1
-        else:
-            success_rate_neg[len(gt['images'][test_img_name]['visible_neighbors'])] -= 1
-    return success_rate_pos, success_rate_neg, success_rate
 
 # def xyz_from_bb(bb):
 #     fx,fy,ox,oy = get_camera_parameters()

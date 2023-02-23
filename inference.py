@@ -107,6 +107,11 @@ def run(foldername,
         # NMS
         pred = non_max_suppression(pred, conf_thres, iou_thres, classes, agnostic_nms, max_det=max_det)
         dt[2] += time_sync() - t3
+
+        # read mapping
+        with open(Path(foldername) / "yolov3" / "filename_to_dataset_mapping.yaml", 'r') as stream:
+            filename_to_dataset_key = yaml.safe_load(stream)
+
         # Process predictions
         for i, det in enumerate(pred):  # per image
             pred_neighbors, per_image = [], {}
@@ -140,18 +145,19 @@ def run(foldername,
                     pred_neighbors.append(np.array([xyz[0],xyz[1],xyz[2]]))
 
                     # xyz_yolo.append(np.array((det[j][0], det[j][1], det[j][2], det[j][3])).tolist())
-                all_robots = {}
+                all_robots = []
                 for h in range(len(pred_neighbors)):
                     per_robot = {}
                     per_robot['pos'] = pred_neighbors[h].tolist() 
-                    all_robots[h] = per_robot
+                    all_robots.append(per_robot)
                 per_image['visible_neighbors'] = all_robots
                 # images[p.name] = per_image
-                images[str(len(pred_neighbors)) + '/' + p.name] = per_image
+                images[filename_to_dataset_key[p.name]] = per_image
+
             else:
                 per_image['visible_neighbors'] = []
                 # images[p.name] = per_image
-                images[str(0) + '/' + p.name] = per_image
+                images[filename_to_dataset_key[p.name]] = per_image
             # Stream results
             im0 = annotator.result()
             cv2.imwrite(save_path, im0)
