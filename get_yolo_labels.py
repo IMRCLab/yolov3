@@ -1,24 +1,14 @@
 import yaml
 import argparse
-import itertools
 from pathlib import Path
 import shutil, os, cv2
-# python3 get_yolo_labels.py -f args_1 -f args_2
-def main():
-    parser = argparse.ArgumentParser()
-    parser.add_argument('-f','--file', type=str, help='dataset.yaml file')
-    parser.add_argument('--imgsz', '--img', '--img-size', type=int, default=(320,320), help='image size w,h')
-    parser.add_argument('--img_ext', type=str, default= '*.jpg', help="image extension") # png for real and jpg for synthetic images
-    parser.add_argument('--training_data_percentage', type=int, default=90, help='training data percentage')
-    parser.add_argument('-mode',help='training or test')
-    
-    args = parser.parse_args()
+# python3 get_yolo_labels.py -f args_1
 
-    main_folder =  Path(args.file).parent.parent
+def get_yolo_labels(dataset_yaml, output_folder, mode, training_data_percentage=90):
 
-    img_size = args.imgsz
-    train_data_percentage = args.training_data_percentage
-    mode = args.mode
+    main_folder = Path(output_folder)
+    img_size = (320,320)
+    train_data_percentage = training_data_percentage
     
     yolo_folder = main_folder / "yolov3"
     shutil.rmtree(yolo_folder, ignore_errors=True)
@@ -50,7 +40,7 @@ def main():
         os.mkdir(images_path / data_folders[k])
         os.mkdir(labels_path / data_folders[k])
     
-    yaml_file = args.file
+    yaml_file = dataset_yaml
     with open(yaml_file, 'r') as stream:
         synchronized_data = yaml.safe_load(stream)
     num_images = len(synchronized_data['images'])
@@ -85,7 +75,7 @@ def main():
             file.write('\n')                     
         file.close()
         data_cnt += 1
-        src_img_path = Path(args.file).parent / image_name
+        src_img_path = Path(dataset_yaml).parent / image_name
 
         idx = 0
         if data_cnt <= numImgTrain and mode =='train':
@@ -98,6 +88,18 @@ def main():
     
     with open(yolo_folder / "filename_to_dataset_mapping.yaml", "w") as f:
         yaml.dump(filename_to_dataset_key, f)
+
+def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument('-f','--file', type=str, help='dataset.yaml file')
+    parser.add_argument('--training_data_percentage', type=int, default=90, help='training data percentage')
+    parser.add_argument('-mode',help='training or test')
+    
+    args = parser.parse_args()
+
+    main_folder =  Path(args.file).parent.parent
+
+    get_yolo_labels(args.file, main_folder, args.mode)
 
 if __name__ == "__main__":
     main()
