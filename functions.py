@@ -4,11 +4,9 @@ import matplotlib.pyplot as plt
 import matplotlib.gridspec as gridspec
 import csv
 import math
-import yaml
 from mpmath import csc
 import cv2
 
-CAMERA_PARAMS_YAML = '/home/akmaral/tubCloud/Shared/cvmrs/calibration_virtual.yaml' 
 RADIUS =  0.0467 # in meters
 
 def quaternion_interpolation(time, q, t):
@@ -136,9 +134,9 @@ def csv_to_dict(csv_file):
         dicts[cf_list[i][0]] = data[i-1]
     return dicts
 
-def xyz_from_bb(bb):
+def xyz_from_bb(bb,mtrx,dist_vec):
     # bb - xmin,ymin,xmax,ymax
-    mtrx, dist_vec = get_camera_parameters()
+    # mtrx, dist_vec = get_camera_parameters()
     fx = np.array(mtrx)[0][0]
     fy = np.array(mtrx)[1][1]
     ox = np.array(mtrx)[0][2]
@@ -163,11 +161,6 @@ def xyz_from_bb(bb):
     # get the position
     xyz = distance*ac/np.linalg.norm(ac)
     return xyz
-
-def get_camera_parameters():
-    with open(CAMERA_PARAMS_YAML) as f:
-        camera_params = yaml.safe_load(f)   
-    return np.array(camera_params['camera_matrix']), np.array(camera_params['dist_coeff'])
 
 # def xyz_from_bb(bb):
 #     fx,fy,ox,oy = get_camera_parameters()
