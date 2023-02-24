@@ -17,10 +17,12 @@ def get_yolo_labels(dataset_yaml, output_folder, mode, training_data_percentage=
     ann_folder = yolo_folder / 'annotations'
     shutil.rmtree(ann_folder, ignore_errors=True)
     os.mkdir(ann_folder)
-    # bb_folder = yolo_folder + '/bb'
-    # shutil.rmtree(bb_folder, ignore_errors=True) 
-    # os.mkdir(yolo_folder + '/bb') # to verify visually
-   # Prepare training, validation, testing data
+    
+    bb_folder = yolo_folder / 'bb'
+    shutil.rmtree(bb_folder, ignore_errors=True) 
+    os.mkdir(bb_folder) # to verify visually
+   
+    # Prepare training, validation, testing data
     images_path = yolo_folder / 'images'
     if os.path.exists(images_path):
         shutil.rmtree(images_path)
@@ -58,11 +60,13 @@ def get_yolo_labels(dataset_yaml, output_folder, mode, training_data_percentage=
                 new_image_name = str(Path(image_name).stem) + "_" + str(i) + str(Path(image_name).suffix)
                 if new_image_name not in filename_to_dataset_key:
                     break
+                i += 1
         filename_to_dataset_key[new_image_name] = image_name
 
         src_file_path = ann_folder / Path(new_image_name).with_suffix(".txt")
         file = open(src_file_path, "w")
         neighbors = entry['visible_neighbors']
+        img = cv2.imread(str(Path(dataset_yaml).parent / image_name))
         for neighbor in neighbors:
             xmin, ymin, xmax, ymax = neighbor['bb']
             h = ymax - ymin
@@ -72,15 +76,20 @@ def get_yolo_labels(dataset_yaml, output_folder, mode, training_data_percentage=
             # if x_c/img_size[0] <= 0. or x_c/img_size[0] >= 1.0 or y_c/img_size[1] <= 0. or y_c/img_size[1] >= 1.0 or w/img_size[0] <= 0. or w/img_size[0] >= 1.0 or h/img_size[1] <= 0. or h/img_size[1] >= 1.0:
             #     continue
             file.write(' {} {} {} {} {}'.format(0, x_c/img_size[0],  y_c/img_size[1],  w/img_size[0], h/img_size[1]))
-            file.write('\n')                     
+            file.write('\n')
+            cv2.rectangle(img, (int(xmin), int(ymin)), (int(xmax), int(ymax)), (0, 0, 255), 2)
         file.close()
+
+        if len(neighbors) > 0:
+            cv2.imwrite(str(bb_folder / new_image_name), img)
+
         data_cnt += 1
         src_img_path = Path(dataset_yaml).parent / image_name
 
         idx = 0
         if data_cnt <= numImgTrain and mode =='train':
             idx = 1
-        target_img_path = images_path / data_folders[idx]
+        target_img_path = images_path / data_folders[idx] / new_image_name
         target_label_path = labels_path / data_folders[idx]
         shutil.copy(src_img_path, target_img_path)
         shutil.copy(src_file_path, target_label_path)
@@ -93,7 +102,7 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('-f','--file', type=str, help='dataset.yaml file')
     parser.add_argument('--training_data_percentage', type=int, default=90, help='training data percentage')
-    parser.add_argument('-mode',help='training or test')
+    parser.add_argument('-mode',help='train or test')
     
     args = parser.parse_args()
 
