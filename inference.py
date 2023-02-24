@@ -111,9 +111,14 @@ def run(foldername,
         # read mapping
         with open(Path(foldername) / "yolov3" / "filename_to_dataset_mapping.yaml", 'r') as stream:
             filename_to_dataset_key = yaml.safe_load(stream)
+        
+        # read original data
+        with open(Path(foldername) / "dataset_filtered.yaml", 'r') as stream:
+            filtered_dataset = yaml.safe_load(stream)
 
         # Process predictions
         for i, det in enumerate(pred):  # per image
+            
             pred_neighbors, per_image = [], {}
             seen += 1
             p, im0, frame = path, im0s.copy(), getattr(dataset, 'frame', 0)
@@ -123,6 +128,10 @@ def run(foldername,
             s += '%gx%g ' % im.shape[2:]  # print string
             annotator = Annotator(im0, line_width=line_thickness, example=str(names))
             if len(det):
+                # get the calibration file, camera matrix for each image
+                calibration_key = filtered_dataset['images'][filename_to_dataset_key[p.name]]['calibration']
+                camera_matrix = np.array(filtered_dataset['calibration'][calibration_key]['camera_matrix'])
+                dist_vec = np.array(filtered_dataset['calibration'][calibration_key]['dist_coeff'])
                 # Rescale boxes from img_size to im0 size
                 det[:, :4] = scale_coords(im.shape[2:], det[:, :4], im0.shape).round()
                 # Print results
@@ -136,12 +145,11 @@ def run(foldername,
                     # inference_file.write('{},{},{},{},{} \n'.format(p.name,det[0][0],det[0][1],det[0][2],det[0][3]))
                     c = int(cls)  # integer class
                     label = None if hide_labels else (names[c] if hide_conf else f'{names[c]} {conf:.2f}')
-                    # print(xyxy)
                     annotator.box_label(xyxy, label, color=colors(c, True))
 
                 det = det.cpu()
                 for j in range(det.shape[0]): # for each robot
-                    xyz = xyz_from_bb(det[j]) # det -> xmin,ymin,xmax,ymax
+                    xyz = xyz_from_bb(det[j],camera_matrix,dist_vec) # det -> xmin,ymin,xmax,ymax
                     pred_neighbors.append(np.array([xyz[0],xyz[1],xyz[2]]))
 
                     # xyz_yolo.append(np.array((det[j][0], det[j][1], det[j][2], det[j][3])).tolist())
