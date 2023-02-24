@@ -145,12 +145,12 @@ def xyz_from_bb(bb,mtrx,dist_vec):
     P1 = np.array([bb[0],(bb[1] + bb[3])/2])
     P2 = np.array([bb[2],(bb[1] + bb[3])/2])
     # rectify pixels
-    P1_rec = cv2.undistort(P1, mtrx, dist_vec, None, mtrx)
-    P2_rec = cv2.undistort(P2, mtrx, dist_vec, None, mtrx)
-   
+    P1_rec = cv2.undistortPoints(P1, mtrx, dist_vec, None, mtrx).flatten()
+    P2_rec = cv2.undistortPoints(P2, mtrx, dist_vec, None, mtrx).flatten()
+
     # get rays for pixels
-    a1 = np.array([(P1_rec[0][0]-ox)/fx, (P1_rec[1][0]-oy)/fy, 1.0])
-    a2 = np.array([(P2_rec[0][0]-ox)/fx, (P2_rec[1][0]-oy)/fy, 1.0])
+    a1 = np.array([(P1_rec[0]-ox)/fx, (P1_rec[1]-oy)/fy, 1.0])
+    a2 = np.array([(P2_rec[0]-ox)/fx, (P2_rec[1]-oy)/fy, 1.0])
     # normalize rays
     a1_norm = np.linalg.norm(a1)
     a2_norm = np.linalg.norm(a2)

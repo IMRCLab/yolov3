@@ -113,7 +113,7 @@ def run(foldername,
             filename_to_dataset_key = yaml.safe_load(stream)
         
         # read original data
-        with open(Path(foldername) / "dataset_filtered.yaml", 'r') as stream:
+        with open(Path(foldername) / "yolov3" / "dataset.yaml", 'r') as stream:
             filtered_dataset = yaml.safe_load(stream)
 
         # Process predictions

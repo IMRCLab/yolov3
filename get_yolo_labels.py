@@ -98,6 +98,8 @@ def get_yolo_labels(dataset_yaml, output_folder, mode, training_data_percentage=
     with open(yolo_folder / "filename_to_dataset_mapping.yaml", "w") as f:
         yaml.dump(filename_to_dataset_key, f)
 
+    shutil.copy(dataset_yaml, yolo_folder / "dataset.yaml")
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('-f','--file', type=str, help='dataset.yaml file')
