@@ -44,7 +44,7 @@ def get_yolo_labels(dataset_yaml, output_folder, mode, training_data_percentage=
     
     yaml_file = dataset_yaml
     with open(yaml_file, 'r') as stream:
-        synchronized_data = yaml.safe_load(stream)
+        synchronized_data = yaml.load(stream, Loader=yaml.CSafeLoader)
     num_images = len(synchronized_data['images'])
 
     numImgTrain = round(train_data_percentage/100*num_images)

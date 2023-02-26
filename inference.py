@@ -87,6 +87,15 @@ def run(foldername,
         model(torch.zeros(1, 3, *imgsz).to(device).type_as(next(model.model.parameters())))  # warmup
     dt, seen = [0.0, 0.0, 0.0], 0
     predictions, images = {},{}
+
+    # read mapping
+    with open(Path(foldername) / "yolov3" / "filename_to_dataset_mapping.yaml", 'r') as stream:
+        filename_to_dataset_key = yaml.load(stream, Loader=yaml.CSafeLoader)
+    
+    # read original data
+    with open(Path(foldername) / "yolov3" / "dataset.yaml", 'r') as stream:
+        filtered_dataset = yaml.load(stream, Loader=yaml.CSafeLoader)
+
     for path, im, im0s, vid_cap, s in dataset:
         print(path)
         t1 = time_sync()
@@ -107,14 +116,6 @@ def run(foldername,
         # NMS
         pred = non_max_suppression(pred, conf_thres, iou_thres, classes, agnostic_nms, max_det=max_det)
         dt[2] += time_sync() - t3
-
-        # read mapping
-        with open(Path(foldername) / "yolov3" / "filename_to_dataset_mapping.yaml", 'r') as stream:
-            filename_to_dataset_key = yaml.safe_load(stream)
-        
-        # read original data
-        with open(Path(foldername) / "yolov3" / "dataset.yaml", 'r') as stream:
-            filtered_dataset = yaml.safe_load(stream)
 
         # Process predictions
         for i, det in enumerate(pred):  # per image
